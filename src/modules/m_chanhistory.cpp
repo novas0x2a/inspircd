@@ -18,6 +18,7 @@
 
 
 #include "inspircd.h"
+#include "commands/cmd_whowas.h"
 
 /* $ModDesc: Provides channel history for a given number of lines */
 
@@ -162,6 +163,16 @@ class ModuleChanHistory : public Module
 		time_t mintime = 0;
 		if (list->maxtime)
 			mintime = ServerInstance->Time() - list->maxtime;
+
+		Module* whowas = ServerInstance->Modules->Find("cmd_whowas.so");
+		if (whowas)
+		{
+			WhowasRequest req(NULL, whowas, WhowasRequest::WHOWAS_LASTSEEN);
+			req.user = memb->user;
+			req.Send();
+			if (req.time_value != time_t() && mintime < req.time_value)
+				mintime = req.time_value;
+		}
 
 		if (sendnotice)
 		{

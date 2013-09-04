@@ -102,6 +102,20 @@ std::string CommandWhowas::GetStats()
 	return "Whowas entries: " +ConvToStr(whowas_size)+" ("+ConvToStr(whowas_bytes)+" bytes)";
 }
 
+time_t CommandWhowas::LastSeen(const User* user)
+{
+	whowas_users::iterator i = whowas.find(assign(user->nick));
+
+	if (i == whowas.end())
+		return time_t();
+
+	whowas_set* grp = i->second;
+	if (!grp->size())
+		return time_t();
+
+	return grp->back()->idle_lastmsg;
+}
+
 void CommandWhowas::AddToWhoWas(User* user)
 {
 	/* if whowas disabled */
@@ -288,7 +302,7 @@ CommandWhowas::~CommandWhowas()
 }
 
 WhoWasGroup::WhoWasGroup(User* user) : host(user->host), dhost(user->dhost), ident(user->ident),
-	server(user->server), gecos(user->fullname), signon(user->signon)
+	server(user->server), gecos(user->fullname), signon(user->signon), idle_lastmsg(user->idle_lastmsg)
 {
 }
 
@@ -335,6 +349,9 @@ class ModuleWhoWas : public Module
 				break;
 			case WhowasRequest::WHOWAS_MAINTAIN:
 				cmd.MaintainWhoWas(ServerInstance->Time());
+				break;
+			case WhowasRequest::WHOWAS_LASTSEEN:
+				req.time_value = cmd.LastSeen(req.user);
 				break;
 		}
 	}

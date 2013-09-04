@@ -31,11 +31,13 @@ struct WhowasRequest : public Request
 		WHOWAS_ADD = 1,
 		WHOWAS_STATS = 2,
 		WHOWAS_PRUNE = 3,
-		WHOWAS_MAINTAIN = 4
+		WHOWAS_MAINTAIN = 4,
+		WHOWAS_LASTSEEN = 5
 	};
 
 	const Internals type;
 	std::string value;
+	time_t time_value;
 	User* user;
 
 	WhowasRequest(Module* src, Module* whowas, Internals Type) : Request(src, whowas, "WHOWAS"), type(Type)
@@ -93,6 +95,7 @@ class CommandWhowas : public Command
 	std::string GetStats();
 	void PruneWhoWas(time_t t);
 	void MaintainWhoWas(time_t t);
+	time_t LastSeen(const User* user);
 	~CommandWhowas();
 };
 
@@ -119,6 +122,9 @@ class WhoWasGroup
 	/** Signon time
 	 */
 	time_t signon;
+	/** lastseen time
+	 */
+	time_t idle_lastmsg;
 
 	/** Initialize this WhoWasFroup with a user
 	 */
